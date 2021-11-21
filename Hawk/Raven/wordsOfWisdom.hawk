@@ -1,0 +1,11 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<title>Bro Test Cases</title>
+</head>
+<body>
+<h1>Words of wisdom</h1>
+${sloganofTheDay}
+</body>
+</html>
