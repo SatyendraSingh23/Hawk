@@ -6,6 +6,7 @@
 </head>
 <body>
 <h1>Words of wisdom</h1>
-${sloganofTheDay}
+${sloganofTheDay}<br>
+${city1} is far far away from ${city2}
 </body>
 </html>

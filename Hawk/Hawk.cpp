@@ -777,10 +777,58 @@ class TemplateEngine
 			responseSize=responseSize+data.length();
 		}
 		cout<<"RESPONSE SIZE : "<<responseSize<<endl;
+		//code to calculate response size ends here
+		//the code to process hawk file starts here
+		string mimeType;
+		mimeType=string("text/html");
+		char header[200];
+		sprintf(header,"HTTP/1.1 200 OK\r\nContent-Type : %s\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n",mimeType.c_str(),responseSize);
+		send(clientSocketDescriptor,header,strlen(header),0);
+		long bytesLeftToRead;
+		int bytesToRead;
+		char buffer[4096];
+		bytesLeftToRead=fileLength;
+		rewind(rvnFile);
+		long tmpBytesLeftToRead;
+		long bytesProcessedFromFile=0;
+		while(1)
+		{
+			fread(&rvnRecord,sizeof(struct rvn),1,rvnFile);
+			if(feof(rvnFile))break;
+			tmpBytesLeftToRead=rvnRecord.start_position-bytesProcessedFromFile;
+			bytesToRead=4096;
+			while(tmpBytesLeftToRead>0)
+			{
+				if(tmpBytesLeftToRead<bytesToRead)bytesToRead=tmpBytesLeftToRead;
+				fread(buffer,bytesToRead,1,hawkFile);
+				if(feof(hawkFile))break;
+				bytesProcessedFromFile=bytesProcessedFromFile+bytesToRead;
+				send(clientSocketDescriptor,buffer,bytesToRead,0);
+				tmpBytesLeftToRead=tmpBytesLeftToRead-bytesToRead;
+			}
+			fread(buffer,(rvnRecord.end_position-rvnRecord.start_position)+1,1,hawkFile);
+			bytesProcessedFromFile=bytesProcessedFromFile+(rvnRecord.end_position-rvnRecord.start_position)+1;
+			if(request.contains(rvnRecord.var_name))
+			{
+				data=request.get(rvnRecord.var_name);
+				cout<<"DATA : "<<data<<endl;
+				send(clientSocketDescriptor,data.c_str(),data.length(),0);
+			}//inner loop ends
+		} // outer loop traversing in rvn file ends
+		bytesLeftToRead=bytesLeftToRead-bytesProcessedFromFile;
+		bytesToRead=4096;
+		while(bytesLeftToRead>0)
+		{
+			if(bytesLeftToRead<bytesToRead)bytesToRead=bytesLeftToRead;
+			fread(buffer,bytesToRead,1,hawkFile);
+			if(feof(hawkFile))break;
+			send(clientSocketDescriptor,buffer,bytesToRead,0);
+			bytesToRead=bytesLeftToRead-bytesToRead;
+		}// the code to process hawk file ends here
 		fclose(hawkFile);
 		fclose(rvnFile);
 	}
-};
+};// class TemplateEngine ends
 class Hawk
 {
 	private : 
@@ -1294,6 +1342,8 @@ int main()
 			}
 			iFile.close();
 			request.set("sloganofTheDay",slogan);
+			request.set("city1","Ujjain");
+			request.set("city2","Mumbai");
 			_forward_(request,string("/wordsOfWisdom.hawk"));
 		});
 		hawk.listen(6060,[](Error &error) void {
