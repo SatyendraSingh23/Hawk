@@ -7,6 +7,21 @@
 <body>
 <h1>Words of wisdom</h1>
 ${sloganofTheDay}<br>
-${city1} is far far away from ${city2}
+${city1} is far far away from ${city2}<br><br>
+Bulb [${bulb}]
+short int ${aa}<br>
+unsigned short int ${bb}<br>
+int ${cc}<br>
+unsigned int ${dd}<br>
+long int ${ee}<br>
+unsigned long int ${ff}<br>
+long long int ${gg}<br>
+unsigned long long int ${hh}<br>
+float ${ii}<br>
+double ${jj}<br>
+long double ${kk}<br>
+char ${ll}<br>
+unsigned char ${mm}<br>
+bool ${nn}<br>
 </body>
 </html>

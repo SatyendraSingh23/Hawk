@@ -19,6 +19,13 @@ using namespace std;
 request.forwardTo(url); \
 return;
 enum __container_operation_failure_reason__{__KEY_EXISTS__,__KEY_DOES_NOT_EXISTS__,__OUT_OF_MEMORY__,__VALUE_SIZE_MISMATCH__};
+
+class Stringifyable
+{
+	public :
+		virtual string stringify()=0;
+};
+
 class Container
 {
 	typedef struct _bag
@@ -400,15 +407,84 @@ class Request
 	}
 	map<string,string> varMap;
 	public :
-	void set(string name,string value)
+	void setHAWKVariable(string name,string value)
 	{
 		varMap.insert({name,value});
-	} 
-	bool contains(string name)
+	}
+	void setHAWKVariable(string name,Stringifyable *stringifyable)
+	{
+		varMap.insert({name,stringifyable->stringify()});	
+	}
+	void setHAWKVariable(string name,const char *ptr)
+	{
+		setHAWKVariable(name,string(ptr));
+	}
+	void setHAWKVariable(string name,short int value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,unsigned short int value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,int value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,unsigned int value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,long int value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,unsigned long int value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,long long int value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,unsigned long long int value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,float value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,double value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,long double value)
+	{
+		varMap.insert({name,to_string(value)});
+	}
+	void setHAWKVariable(string name,char value)
+	{
+		string str;
+		str+=value;
+		varMap.insert({name,str});
+	}
+	void setHAWKVariable(string name,unsigned char value)
+	{
+		string str;
+		str+=value;
+		varMap.insert({name,str});
+	}
+	void setHAWKVariable(string name,bool value)	
+	{
+		if(value)varMap.insert({name,"true"});
+		else varMap.insert({name,"false"});
+	}
+	bool containsHAWKVariable(string name)
 	{
 		return varMap.find(name)!=varMap.end();
 	}
-	string get(string name)
+	string getHAWKVariable(string name)
 	{
 		auto a=varMap.find(name);
 		if(a==varMap.end())return string("");
@@ -773,7 +849,7 @@ class TemplateEngine
 			fread(&rvnRecord,sizeof(struct rvn),1,rvnFile);
 			if(feof(rvnFile))break;
 			responseSize=responseSize-((rvnRecord.end_position-rvnRecord.start_position+1));
-			data=request.get(rvnRecord.var_name);
+			data=request.getHAWKVariable(rvnRecord.var_name);
 			responseSize=responseSize+data.length();
 		}
 		cout<<"RESPONSE SIZE : "<<responseSize<<endl;
@@ -808,9 +884,9 @@ class TemplateEngine
 			}
 			fread(buffer,(rvnRecord.end_position-rvnRecord.start_position)+1,1,hawkFile);
 			bytesProcessedFromFile=bytesProcessedFromFile+(rvnRecord.end_position-rvnRecord.start_position)+1;
-			if(request.contains(rvnRecord.var_name))
+			if(request.containsHAWKVariable(rvnRecord.var_name))
 			{
-				data=request.get(rvnRecord.var_name);
+				data=request.getHAWKVariable(rvnRecord.var_name);
 				cout<<"DATA : "<<data<<endl;
 				send(clientSocketDescriptor,data.c_str(),data.length(),0);
 			}//inner loop ends
@@ -1224,6 +1300,35 @@ class Hawk
 	}
 };
 
+
+
+class Bulb: public Stringifyable
+{
+	private :
+	int wattage;
+	int price;
+	public :
+	void setWattage(int wattage)
+	{
+		this->wattage=wattage;
+	}
+	int getWattage()
+	{
+		return this->wattage;
+	}
+	void setPrice(int price)
+	{
+		this->price=price;
+	}
+	int getPrice()
+	{
+		return this->price;
+	}
+	string stringify()
+	{
+		return string("Wattage is : ")+to_string(this->wattage)+string(", Price : ")+to_string(this->price);
+ 	}
+};
 // Hawk [The web application developer - user of Hawk web server] 
 int main()
 {
@@ -1341,9 +1446,41 @@ int main()
 				i++;
 			}
 			iFile.close();
-			request.set("sloganofTheDay",slogan);
-			request.set("city1","Ujjain");
-			request.set("city2","Mumbai");
+			request.setHAWKVariable("sloganofTheDay",slogan);
+			request.setHAWKVariable("city1","Ujjain");
+			request.setHAWKVariable("city2","Mumbai");
+			Bulb bulb;
+			bulb.setWattage(60);
+			bulb.setPrice(100);
+			request.setHAWKVariable("bulb",&bulb);
+			short int a=10;
+			unsigned short int b=20;
+			int c=20;
+			unsigned int d=40;
+			long int e=50;
+			unsigned long int f=60;
+			long long int g=70;
+			unsigned long long int h=80;
+			float ii=33.67f;
+			double j=423432.42342;
+			long double k=42334.231;
+			char l='A';
+			unsigned char m='B';
+			bool n =true;
+			request.setHAWKVariable("aa",a);
+			request.setHAWKVariable("bb",b);
+			request.setHAWKVariable("cc",c);
+			request.setHAWKVariable("dd",d);
+			request.setHAWKVariable("ee",e);
+			request.setHAWKVariable("ff",f);
+			request.setHAWKVariable("gg",g);
+			request.setHAWKVariable("hh",h);
+			request.setHAWKVariable("ii",ii);
+			request.setHAWKVariable("jj",j);
+			request.setHAWKVariable("kk",k);
+			request.setHAWKVariable("ll",l);
+			request.setHAWKVariable("mm",m);
+			request.setHAWKVariable("nn",n);
 			_forward_(request,string("/wordsOfWisdom.hawk"));
 		});
 		hawk.listen(6060,[](Error &error) void {
